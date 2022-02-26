@@ -25,17 +25,15 @@ class Tuner:
     def TuneSVR(self, X_train, y_train, verbose = True, save = True):
         # For now, "Tune" SVR actually just trains SVR as my laptop is quite slow
         # Support Vector Regressor
-        if verbose == True:
-            print("Training - SVR")
-        
-        if verbose == True:
+        if verbose:
             print("Cross validation results - untuned SVR:\n")
             print(pd.DataFrame(cross_validate(self.pipe_svr, X_train, np.ravel(y_train), scoring="neg_mean_absolute_error")))
-        
+            print("Training - SVR")
+
         self.pipe_svr.fit(X_train, y_train)
 
         # save model
-        if save == True:
+        if save:
             print("Saving SVR model...\n")
             with open("SVR_pickle_"+self.season_start+"_to_"+self.season_end, "wb") as f:
                 pickle.dump(self.pipe_svr, f)
@@ -47,7 +45,7 @@ class Tuner:
 
         # Hyperparameter Tuning - LASSO
 
-        if verbose == True:
+        if verbose:
             print("\nHyperparameter Tuning - LASSO")
 
         parameters_lasso = {"lasso__alpha": np.linspace(0.1, 5, 100)} # Some values for the regularization strength
@@ -62,20 +60,20 @@ class Tuner:
         alpha_best_lasso = gs_lasso.best_params_["lasso__alpha"]
         alpha_best_lasso
 
-        if verbose == True:
+        if verbose:
             print("\nGrid Search Results:\n")
             print(pd.DataFrame(gs_lasso.cv_results_).head(5))
 
         pipe_Lasso = make_pipeline(self.cleaner.preprocessor, StandardScaler(), Lasso(alpha = alpha_best_lasso))
         
-        if verbose == True:
+        if verbose:
             print("\nCross validation results - tuned LASSO:")
             print(pd.DataFrame(cross_validate(pipe_Lasso, X_train, y_train, scoring="neg_mean_absolute_error")))
 
         pipe_Lasso.fit(X_train, y_train)
         self.pipe_lasso = pipe_Lasso
 
-        if verbose == True:
+        if verbose:
             sorted_coefs = np.sort(np.array(pipe_Lasso.named_steps["lasso"].coef_))
             locs = np.argsort(np.array(pipe_Lasso.named_steps["lasso"].coef_))
             print("LASSO Regression coefficients (sorted)")
@@ -85,7 +83,7 @@ class Tuner:
                 print("Coefficient:", coef)
                 print("\n")
 
-        if save == True:
+        if save:
             # save model
             print("Saving LASSO model...\n")
             with open("LASSO_pickle_"+self.season_start+"_to_"+self.season_end, "wb") as f:
@@ -99,7 +97,7 @@ class Tuner:
 
         # Hyperparameter Tuning - Random Forest
 
-        if verbose == True:
+        if verbose:
             print("Hyperparameter Tuning - Random Forest")
 
         d = self.cleaner.preprocessor.fit_transform(X_train).shape[1]
@@ -118,7 +116,7 @@ class Tuner:
         max_depth_best = rs_rfr.best_params_["randomforestregressor__max_depth"]
         n_estimators_best = rs_rfr.best_params_["randomforestregressor__n_estimators"]
 
-        if verbose == True:
+        if verbose:
             print("Best maximum depth:", max_depth_best)
             print("\nBest number of estimators:", n_estimators_best)
 
@@ -130,14 +128,14 @@ class Tuner:
         pipe_rfr.fit(X_train, y_train)
         self.pipe_rfr = pipe_rfr
         
-        if verbose == True:
+        if verbose:
             print("RFR cross validation results - tuned RFR:\n")
             print(pd.DataFrame(cross_validate(pipe_rfr, 
                                             X_train, 
                                             np.ravel(y_train), 
                                             scoring="neg_mean_absolute_error")))
         
-        if save == True:
+        if save:
             # save model
             print("Saving RFR model...\n")
             with open("RFR_pickle_"+self.season_start+"_to_"+self.season_end, "wb") as f:
@@ -153,17 +151,17 @@ class Tuner:
         self.sr_ridge = StackingRegressor(estimators = [("lasso", self.pipe_lasso), ("rfr", self.pipe_rfr), ("svr", self.pipe_svr)],
                                     final_estimator = Ridge(alpha=1))
 
-        if verbose == True:
+        if verbose:
             print("Mean of cross validation results - stacking model:")
             print(np.mean(pd.DataFrame(cross_validate(self.sr_ridge, X_train, np.ravel(y_train), scoring = "neg_mean_absolute_error"))))
         
         self.sr_ridge.fit(X_train, np.ravel(y_train))
         
-        if verbose == True:
+        if verbose:
             print("The stacking model coefficients are:\n")
             print(self.sr_ridge.final_estimator_.coef_)
 
-        if save == True:
+        if save:
             # save model
             print("Saving ensemble model...\n")
             with open("SR_pickle_"+self.season_start+"_to_"+self.season_end, "wb") as f:

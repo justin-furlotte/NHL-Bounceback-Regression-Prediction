@@ -4,7 +4,8 @@ import pandas as pd
 
 # Plotting The Results
 
-# This next section code finds the top $N$ overperformers and underperformers, and then creates a bar plot showing 
+# Finds the top n overperformers and underperformers who played at least min_games games, 
+# and then creates a bar plot showing 
 # 
 # 1) The model's predicted number of goals scored that season (in green).
 # 
@@ -16,13 +17,18 @@ import pandas as pd
 # 
 # - All goals are the player's *pace over 82 games*. 
 # 
-# - Right now, I have the model predicting the number of goals scored in 2017-2018, and then comparing that to the player's results the following season in 2018-2019 to check for bounce backs/regressions. This is simply due to the fact that this was the final year that the NHL played a full 82 game schedule due to the pandemic. Of course, these charts could still be created for any season, past or present.
+# - On the ***overperformer*** chart, if the blue bar (goals next season) is less than the 
+# gold bar (goals last season), then the player's name is written in green, because the 
+# model correctly predicted that the player would regress the following season. Otherwise, 
+# the player's name is written in red, because the model made a mistake.
 # 
-# - On the ***overperformer*** chart, if the blue bar (goals next season) is less than the gold bar (goals last season), then the player's name is written in green, because the model correctly predicted that the player would regress the following season. Otherwise, the player's name is written in red, because the model made a mistake.
+# - Conversely, on the ***underperformer*** chart, if the blue bar is higher than the gold bar, 
+# then the player's name is in green because the model successfully predicted that the player 
+# would bounce back the following season.  Otherwise, the player's name will be in red.
 # 
-# - Conversely, on the ***underperformer*** chart, if the blue bar is higher than the gold bar, then the player's name is in green because the model successfully predicted that the player would bounce back the following season.  Otherwise, the player's name will be in red.
-# 
-# By default $N$ is set to 10, i.e. showing the top ten over/underperformers. 
+# By default, n=10, i.e. showing the top ten over/underperformers, 
+# and min_games=40, i.e. the player must have played at least 
+# 40 games to be considered for the chart. 
 
 # Comparing Predicted Goals and Actual Goals
 def UnderPerformer(differences_last_year): 
