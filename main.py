@@ -14,6 +14,9 @@ import model_tuning
 import os
 import csv
 import sys
+import plotly.express as px
+from dash import Dash, dcc, html, Input, Output
+import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors 
 import numpy as np
@@ -61,19 +64,18 @@ season_ends = ["11_12", "12_13", "13_14", "14_15", "15_16", "16_17", "17_18", "1
 this_seasons = ["12_13", "13_14", "14_15", "15_16", "16_17", "17_18", "18_19", "19_20", "20_21", "21_22"]
 next_seasons = ["13_14", "14_15", "15_16", "16_17", "17_18", "18_19", "19_20", "20_21", "21_22"]
 
-for i in range(len(next_seasons)):
+# Load the data from each year into a dictionary
+dfs = {}
+for i in np.arange(10,22):
+    year = str(i)+"_"+str(i+1)
+    csv_name = "./PlayerData/Players_"+year+".csv"
+    dfs[year] = pd.read_csv(csv_name, index_col="playerId")
+
+for i in [1]:
 
     season_end = season_ends[i]
     this_season = this_seasons[i]
     next_season = next_seasons[i]
-
-    # Load the data from each year into a dictionary
-    dfs = {}
-    for i in np.arange(10,22):
-        year = str(i)+"_"+str(i+1)
-        csv_name = "./PlayerData/Players_"+year+".csv"
-        dfs[year] = pd.read_csv(csv_name, index_col="playerId")
-
 
     # Preprocess the data
 
@@ -131,7 +133,15 @@ for i in range(len(next_seasons)):
     with open("./PickledModels/SR_pickle_"+season_start+"_to_"+season_end,"rb") as f:
        model = pickle.load(f)
 
+    chart = utils.Chart()
+
+    scatter_df = chart.CreateScatterDF(model, dfs)
+    print(scatter_df.head(5))
 
     # Plot the results
-    utils.Find(utils.OverPerformer, X_this_season, X_next_season, pd.DataFrame(y_this_season), pd.DataFrame(y_next_season), model, print_details=False)
-    utils.Find(utils.UnderPerformer, X_this_season, X_next_season, pd.DataFrame(y_this_season), pd.DataFrame(y_next_season), model, print_details=False)
+    chart.Find(chart.OverPerformer, X_this_season, X_next_season, pd.DataFrame(y_this_season), pd.DataFrame(y_next_season), model, print_details=False, produce_plot=False)
+    chart.Find(chart.UnderPerformer, X_this_season, X_next_season, pd.DataFrame(y_this_season), pd.DataFrame(y_next_season), model, print_details=False, produce_plot=False)
+
+class Scatter:
+    def __init__(self):
+        self.scatter_df = scatter_df
