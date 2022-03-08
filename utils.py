@@ -112,8 +112,9 @@ class Chart:
         else:
             print("Incorrect PerformerType.")
 
-        print("-----------------------------------")
-        print("Top", top_n, perf_type+" in "+season)
+        if print_details:
+            print("-----------------------------------")
+            print("Top", top_n, perf_type+" in "+season)
 
         # Only consider the players who played min_games in both seasons
         y_last_year = y_last_year.loc[X_last_year['games_played'] >= min_games]
