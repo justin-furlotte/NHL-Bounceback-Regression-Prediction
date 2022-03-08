@@ -13,6 +13,7 @@ scatter_df = scatter_df.round(decimals=1)
 
 
 app = Dash(__name__)
+server = app.server
 
 font = "Arial"
 colors = {
