@@ -174,9 +174,6 @@ def update_time_series(clickData):
 
     time_series_df = scatter_df[scatter_df["Player"] == player]
 
-
-
-
     fig = go.Figure()
 
     fig.add_trace(go.Scatter(
