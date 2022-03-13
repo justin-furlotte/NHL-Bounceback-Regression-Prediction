@@ -67,7 +67,7 @@ next_seasons = ["13_14", "14_15", "15_16", "16_17", "17_18", "18_19", "19_20", "
 dfs = {}
 for i in np.arange(10,22):
     year = str(i)+"_"+str(i+1)
-    csv_name = "./env/PlayerData/Players_"+year+".csv"
+    csv_name = "./PlayerData/Players_"+year+".csv"
     dfs[year] = pd.read_csv(csv_name, index_col="playerId")
 
 for i in [1]:
@@ -129,7 +129,7 @@ for i in [1]:
     #model = tuner.sr_ridge
 
 
-    with open("./env/PickledModels/SR_pickle_"+season_start+"_to_"+season_end,"rb") as f:
+    with open("./PickledModels/SR_pickle_"+season_start+"_to_"+season_end,"rb") as f:
        model = pickle.load(f)
 
     chart = utils.Chart()
