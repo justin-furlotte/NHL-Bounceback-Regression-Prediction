@@ -18,6 +18,7 @@ class Cleaner:
     # Create a dataframe for all-situations scoring (as opposed to just 5 on 5, or 5 on 4, etc)
     def CreateAllSituationsDF(self):
         for key in self.dfs.keys():
+            tonjt = self.dfs[key].columns
             self.dfs[key] = self.dfs[key].loc[self.dfs[key]["situation"] == "all"].drop(columns="situation")
 
     # Split the Data into train and test sets

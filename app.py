@@ -11,6 +11,8 @@ scatter_df = Scatter.scatter_df
 scatter_df.loc[scatter_df['Predicted goal pace']<0,'Predicted goal pace']=0
 scatter_df = scatter_df.round(decimals=1)
 
+years = ["2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022"] #scatter_df['Season'].unique()
+
 
 app = Dash(__name__)
 server = app.server
@@ -117,7 +119,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         scatter_df['Season'].max(),
         step=None,
         value=2020,
-        marks={str(year): str(year) for year in scatter_df['Season'].unique()},
+        marks={str(year): str(year) for year in years},
         id='year-slider'
     ),
 
@@ -202,30 +204,7 @@ def update_time_series(clickData):
         transition_duration=500
     )
 
-
-
-
-
-
-
-
-    # fig = px.scatter(time_series_df, x='Season', y=['Goal pace',"Predicted goal pace"])
-
-    # fig.update_traces(mode='lines+markers')
-
-    # fig.add_annotation(x=0.05, y=0.95, xanchor='left', yanchor='bottom',
-    #                    xref='paper', yref='paper', showarrow=False, align='left',
-    #                    text='<b>{}</b><br>{}'.format("Player:", player))
-
-    # fig.update_layout(
-    #     plot_bgcolor=colors['background'],
-    #     paper_bgcolor=colors['background'],
-    #     font_color=colors['text'],
-    #     transition_duration=500
-    # )
-    # fig.update_layout(showlegend=True)
-
     return fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+   app.run_server(debug=True)

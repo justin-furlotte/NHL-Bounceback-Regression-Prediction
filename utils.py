@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
+import pickle
 
 # Plotting The Results
 
@@ -35,14 +36,21 @@ class Chart:
     def __init__(self):
         self.scatter_df = None
 
-    def CreateScatterDF(self, model, dfs, min_games=40):
+    def CreateScatterDF(self, dfs, min_games=40):
 
         scatter_df = []
+        
+        for i in np.arange(11,21):
 
-        for i in np.arange(10,22):
+            season_start = "10_11"
+            season_end = str(i) + "_" + str(i+1)
+            this_season = str(i+1) + "_" + str(i+2)
+
+            with open("./PickledModels/SR_pickle_"+season_start+"_to_"+season_end,"rb") as f:
+                model = pickle.load(f)
             
-            X = dfs[str(i)+"_"+str(i+1)].drop(columns="I_F_goals")
-            y = dfs[str(i)+"_"+str(i+1)]["I_F_goals"]
+            X = dfs[this_season].drop(columns="I_F_goals")
+            y = dfs[this_season]["I_F_goals"]
 
             # Only consider the players who played min_games in both seasons
             y = y.loc[X['games_played'] >= min_games]
@@ -57,7 +65,7 @@ class Chart:
             pred_goal_pace = y_hat/games_played*82
 
             scatter_dictX = {
-                "Season": [2000+i for j in range(len(X["team"]))],
+                "Season": [2000+i+1 for j in range(X.shape[0])],
                 "Team": list(X["team"]),
                 "Player": list(X["name"]),
                 "Goal pace": list(goal_pace),

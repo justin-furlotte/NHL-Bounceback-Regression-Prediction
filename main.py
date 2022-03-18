@@ -54,14 +54,7 @@ from sklearn.svm import SVC, SVR
 import pickle
 
 train_new_models = False
-
-# Seasons used as training data (i.e. "previous seaons")
-season_start = "10_11"
-season_ends = ["11_12", "12_13", "13_14", "14_15", "15_16", "16_17", "17_18", "18_19", "19_20", "20_21", "21_22"]
-
-# Seasons used for predicting over/underperformers (i.e. "this year" and "next year")
-this_seasons = ["12_13", "13_14", "14_15", "15_16", "16_17", "17_18", "18_19", "19_20", "20_21", "21_22"]
-next_seasons = ["13_14", "14_15", "15_16", "16_17", "17_18", "18_19", "19_20", "20_21", "21_22"]
+produce_plots = False
 
 # Load the data from each year into a dictionary
 dfs = {}
@@ -70,77 +63,95 @@ for i in np.arange(10,22):
     csv_name = "./PlayerData/Players_"+year+".csv"
     dfs[year] = pd.read_csv(csv_name, index_col="playerId")
 
-for i in [1]:
+# Only use all-situations goals
+cleaner = data_cleaning.Cleaner(dfs)
+cleaner.CreateAllSituationsDF()
+dfs = cleaner.dfs
 
-    season_end = season_ends[i]
-    this_season = this_seasons[i]
-    next_season = next_seasons[i]
+chart = utils.Chart()
 
-    # Preprocess the data
-
-    cleaner = data_cleaning.Cleaner(dfs)
-    cleaner.CreateAllSituationsDF()
-
-    # X_train and y_train are all the data from the year
-    # season_start to the year season_end
-    X_train, y_train = cleaner.CreateXytrain(season_start, season_end)
-
-    cleaner.CreatePreprocessor(X_train)
-    cleaner.GetNewFeatureNames(X_train)
-    preprocessor = cleaner.preprocessor
-    new_feature_names = cleaner.transformed_feature_names
-
-    dfs = cleaner.dfs
-
-    playerid_this_season = {playerid: str(playerid)+"_"+this_season for playerid in list(dfs[this_season].index)}
-    X_this_season = dfs[this_season].drop(columns="I_F_goals").rename(index=playerid_this_season)
-    y_this_season = dfs[this_season]["I_F_goals"].rename(index=playerid_this_season)
-
-    playerid_next_season = {playerid: str(playerid)+"_"+next_season for playerid in list(dfs[next_season].index)}
-    X_next_season = dfs[next_season].drop(columns="I_F_goals").rename(index=playerid_next_season)
-    y_next_season = dfs[next_season]["I_F_goals"].rename(index=playerid_next_season)
-
-
-    if train_new_models == True:
-
-        # Create a pipeline for some models
-
-        # Lasso Regression
-        pipe_lasso = make_pipeline(preprocessor, StandardScaler(), Lasso(max_iter=1000))
-
-        # Random forest regression
-        pipe_rfr = make_pipeline(preprocessor, RandomForestRegressor())
-
-        # SVM Regression
-        # Unfortunately my laptop is too slow to do hyperparameter optimization on svr but it is still giving
-        # decent results with a regularization strength of 1 and Gaussian RBF kernel
-        pipe_svr = make_pipeline(preprocessor, StandardScaler(), SVR(kernel="rbf", C=1.0))
-
-        tuner = model_tuning.Tuner(cleaner, pipe_svr, pipe_lasso, pipe_rfr, season_start, season_end)
-        tuner.TuneLasso(X_train, y_train)
-        tuner.TuneRFR(X_train, y_train)
-        tuner.TuneSVR(X_train, y_train)
-        tuner.TuneEnsemble(X_train, y_train)
-        
-
-    # The final model is the stacking regressor, which is an ensemble
-    # method combining lasso, support vector regressor, and 
-    # random forest regressor using ridge as the final estimator
-    #model = tuner.sr_ridge
-
-
-    with open("./PickledModels/SR_pickle_"+season_start+"_to_"+season_end,"rb") as f:
-       model = pickle.load(f)
-
-    chart = utils.Chart()
-
-    scatter_df = chart.CreateScatterDF(model, dfs)
-    print(scatter_df.head(5))
-
-    # Plot the results
-    chart.Find(chart.OverPerformer, X_this_season, X_next_season, pd.DataFrame(y_this_season), pd.DataFrame(y_next_season), model, print_details=False, produce_plot=False)
-    chart.Find(chart.UnderPerformer, X_this_season, X_next_season, pd.DataFrame(y_this_season), pd.DataFrame(y_next_season), model, print_details=False, produce_plot=False)
+scatter_df = chart.CreateScatterDF(dfs)
+print(scatter_df.head(5))
 
 class Scatter:
     def __init__(self):
         self.scatter_df = scatter_df
+
+
+
+if produce_plots:
+
+    # Seasons used as training data (i.e. "previous seaons")
+    season_start = "10_11"
+    season_ends = ["11_12", "12_13", "13_14", "14_15", "15_16", "16_17", "17_18", "18_19", "19_20", "20_21", "21_22"]
+
+    # Seasons used for predicting over/underperformers (i.e. "this year" and "next year")
+    this_seasons = ["12_13", "13_14", "14_15", "15_16", "16_17", "17_18", "18_19", "19_20", "20_21", "21_22"]
+    next_seasons = ["13_14", "14_15", "15_16", "16_17", "17_18", "18_19", "19_20", "20_21", "21_22"]
+
+    for i in range(len(next_seasons)):
+
+        season_end = season_ends[i]
+        this_season = this_seasons[i]
+        next_season = next_seasons[i]
+
+        # load model
+        with open("./PickledModels/SR_pickle_"+season_start+"_to_"+season_end,"rb") as f:
+            model = pickle.load(f)
+
+        # Preprocess the data
+
+        cleaner = data_cleaning.Cleaner(dfs)
+        cleaner.CreateAllSituationsDF()
+
+        # X_train and y_train are all the data from the year
+        # season_start to the year season_end
+        X_train, y_train = cleaner.CreateXytrain(season_start, season_end)
+
+        cleaner.CreatePreprocessor(X_train)
+        cleaner.GetNewFeatureNames(X_train)
+        preprocessor = cleaner.preprocessor
+        new_feature_names = cleaner.transformed_feature_names
+
+        dfs = cleaner.dfs
+
+        playerid_this_season = {playerid: str(playerid)+"_"+this_season for playerid in list(dfs[this_season].index)}
+        X_this_season = dfs[this_season].drop(columns="I_F_goals").rename(index=playerid_this_season)
+        y_this_season = dfs[this_season]["I_F_goals"].rename(index=playerid_this_season)
+
+        playerid_next_season = {playerid: str(playerid)+"_"+next_season for playerid in list(dfs[next_season].index)}
+        X_next_season = dfs[next_season].drop(columns="I_F_goals").rename(index=playerid_next_season)
+        y_next_season = dfs[next_season]["I_F_goals"].rename(index=playerid_next_season)
+
+
+        if train_new_models == True:
+
+            # Create a pipeline for some models
+
+            # Lasso Regression
+            pipe_lasso = make_pipeline(preprocessor, StandardScaler(), Lasso(max_iter=1000))
+
+            # Random forest regression
+            pipe_rfr = make_pipeline(preprocessor, RandomForestRegressor())
+
+            # SVM Regression
+            # Unfortunately my laptop is too slow to do hyperparameter optimization on svr but it is still giving
+            # decent results with a regularization strength of 1 and Gaussian RBF kernel
+            pipe_svr = make_pipeline(preprocessor, StandardScaler(), SVR(kernel="rbf", C=1.0))
+
+            tuner = model_tuning.Tuner(cleaner, pipe_svr, pipe_lasso, pipe_rfr, season_start, season_end)
+            tuner.TuneLasso(X_train, y_train)
+            tuner.TuneRFR(X_train, y_train)
+            tuner.TuneSVR(X_train, y_train)
+            tuner.TuneEnsemble(X_train, y_train)
+            
+
+        # The final model is the stacking regressor, which is an ensemble
+        # method combining lasso, support vector regressor, and 
+        # random forest regressor using ridge as the final estimator
+        #model = tuner.sr_ridge
+
+
+        # Plot the results
+        chart.Find(chart.OverPerformer, X_this_season, X_next_season, pd.DataFrame(y_this_season), pd.DataFrame(y_next_season), model, print_details=False, produce_plot=True)
+        chart.Find(chart.UnderPerformer, X_this_season, X_next_season, pd.DataFrame(y_this_season), pd.DataFrame(y_next_season), model, print_details=False, produce_plot=True)
