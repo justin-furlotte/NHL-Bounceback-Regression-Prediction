@@ -11,7 +11,7 @@ scatter_df = Scatter.scatter_df
 scatter_df.loc[scatter_df['Predicted goal pace']<0,'Predicted goal pace']=0
 scatter_df = scatter_df.round(decimals=1)
 
-years = ["2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022"] #scatter_df['Season'].unique()
+years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022] #scatter_df['Season'].unique()
 
 
 app = Dash(__name__)
@@ -115,7 +115,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     html.Div(html.P([html.Br()])),
 
     dcc.Slider(
-        scatter_df['Season'].min(),
+        2012,
         scatter_df['Season'].max(),
         step=None,
         value=2020,
