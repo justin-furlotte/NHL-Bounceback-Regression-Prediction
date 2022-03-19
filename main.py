@@ -56,30 +56,24 @@ import pickle
 train_new_models = False
 produce_plots = False
 
-# Load the data from each year into a dictionary
-dfs = {}
-for i in np.arange(10,22):
-    year = str(i)+"_"+str(i+1)
-    csv_name = "./PlayerData/Players_"+year+".csv"
-    dfs[year] = pd.read_csv(csv_name, index_col="playerId")
-
-# Only use all-situations goals
-cleaner = data_cleaning.Cleaner(dfs)
-cleaner.CreateAllSituationsDF()
-dfs = cleaner.dfs
-
-chart = utils.Chart()
-
-scatter_df = chart.CreateScatterDF(dfs)
-print(scatter_df.head(5))
-
-class Scatter:
-    def __init__(self):
-        self.scatter_df = scatter_df
-
-
-
 if produce_plots:
+
+    # Load the data from each year into a dictionary
+    dfs = {}
+    for i in np.arange(10,22):
+        year = str(i)+"_"+str(i+1)
+        csv_name = "./PlayerData/Players_"+year+".csv"
+        dfs[year] = pd.read_csv(csv_name, index_col="playerId")
+
+    # Only use all-situations goals
+    cleaner = data_cleaning.Cleaner(dfs)
+    cleaner.CreateAllSituationsDF()
+    dfs = cleaner.dfs
+
+    chart = utils.Chart()
+
+    # scatter_df = chart.CreateScatterDF(dfs)
+    # scatter_df.to_csv("scatter_df.csv")
 
     # Seasons used as training data (i.e. "previous seaons")
     season_start = "10_11"

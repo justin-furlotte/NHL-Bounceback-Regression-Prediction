@@ -6,13 +6,11 @@ from dash import Dash, dcc, html, Input, Output
 import plotly.graph_objects as go
 import main
 
-Scatter = main.Scatter()
-scatter_df = Scatter.scatter_df
+scatter_df = pd.read_csv("PlayerData/scatter_df.csv")
 scatter_df.loc[scatter_df['Predicted goal pace']<0,'Predicted goal pace']=0
 scatter_df = scatter_df.round(decimals=1)
 
-years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022] #scatter_df['Season'].unique()
-
+years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022]
 
 app = Dash(__name__)
 server = app.server
@@ -115,9 +113,9 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     html.Div(html.P([html.Br()])),
 
     dcc.Slider(
-        2012,
-        scatter_df['Season'].max(),
-        step=None,
+        min = 2012,
+        max = scatter_df['Season'].max(),
+        step = 1,
         value=2020,
         marks={str(year): str(year) for year in years},
         id='year-slider'
